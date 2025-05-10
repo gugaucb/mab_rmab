@@ -1,0 +1,35 @@
+#version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - BANDIT_MODE=${BANDIT_MODE:-rank_multi_armed_bandit}
+      #- DB_TYPE=${DB_TYPE:-sqlite}
+      # SQLite specific
+      #- DB_PATH=${DB_PATH:-/app/instance/recommender.db}
+      # PostgreSQL specific (uncomment and set if DB_TYPE is postgresql)
+      - DB_URL=${DB_URL:-postgres}
+      - DB_USER=${DB_USER:-user}
+      - DB_PASS=${DB_PASS:-password}
+      - DB_NAME=${DB_NAME:-recommender}
+    volumes:
+      # Mount a local directory for SQLite database persistence
+      - ./instance:/app/instance
+    depends_on:
+      - postgres # Only if DB_TYPE is postgresql
+
+  postgres: # Uncomment this service if using PostgreSQL
+    image: postgres:13-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASS:-password}
+      POSTGRES_DB: ${DB_NAME:-recommender}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: # Only if DB_TYPE is postgresql
